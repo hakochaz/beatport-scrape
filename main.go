@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -18,6 +20,26 @@ type Track struct {
 }
 
 func main() {
+	f, err := os.Open("artists.csv")
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	defer f.Close()
+
+	// get artists
+	al, err := csv.NewReader(f).ReadAll()
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var as []string
+
+	for _, a := range al {
+		as = append(as, a[0])
+	}
+
 	var ts []Track
 	c := colly.NewCollector()
 
@@ -36,7 +58,7 @@ func main() {
 		c.OnHTMLDetach(".pagination-bottom-container")
 
 		for i := 2; i <= pn; i++ {
-			c.Visit("https://www.beatport.com/genre/drum-and-bass/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=30d")
+			c.Visit("https://www.beatport.com/genre/drum-and-bass/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=30d&type=Release")
 		}
 	})
 
@@ -44,8 +66,9 @@ func main() {
 		fmt.Println("Visiting", r.URL)
 	})
 
-	c.Visit("https://www.beatport.com/genre/drum-and-bass/1/releases?per-page=150&last=30d")
+	c.Visit("https://www.beatport.com/genre/drum-and-bass/1/releases?per-page=150&last=30d&type=Release")
 	c.Wait()
+	fmt.Println(filterArtists(ts, as))
 }
 
 func createTrack(e *colly.HTMLElement) Track {
@@ -57,4 +80,21 @@ func createTrack(e *colly.HTMLElement) Track {
 	u := e.ChildAttr("a .buk-horz-release-title", "href")
 
 	return Track{a, t, l, r, u}
+}
+
+func filterArtists(tl []Track, al []string) []Track {
+	var ft []Track
+
+	for _, t := range tl {
+		as := strings.Split(t.Artists, ", ")
+		for _, a := range as {
+			for _, a2 := range al {
+				if a == a2 {
+					ft = append(ft, t)
+				}
+			}
+		}
+	}
+
+	return ft
 }
