@@ -1,9 +1,7 @@
-package main
+package scraper
 
 import (
-	"encoding/csv"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -19,28 +17,17 @@ type Track struct {
 	URL     string
 }
 
-func main() {
-	f, err := os.Open("artists.csv")
-	if err != nil {
-		fmt.Print(err)
-	}
+// Conf holds the config data for scraping beatport tracks
+type Conf struct {
+	TimeFrame string
+	Genre     string
+}
 
-	defer f.Close()
-
-	// get artists
-	al, err := csv.NewReader(f).ReadAll()
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var as []string
-
-	for _, a := range al {
-		as = append(as, a[0])
-	}
-
+// GetReleases takes in an artists list and returns a list of all tracks
+// by those artists in a defined period of time
+func GetReleases(al []string, co Conf) ([]Track, error) {
 	var ts []Track
+
 	c := colly.NewCollector()
 
 	c.OnHTML(".horz-release-meta", func(e *colly.HTMLElement) {
@@ -58,7 +45,7 @@ func main() {
 		c.OnHTMLDetach(".pagination-bottom-container")
 
 		for i := 2; i <= pn; i++ {
-			c.Visit("https://www.beatport.com/genre/drum-and-bass/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=30d&type=Release")
+			c.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=" + co.TimeFrame + "&type=Release")
 		}
 	})
 
@@ -68,7 +55,9 @@ func main() {
 
 	c.Visit("https://www.beatport.com/genre/drum-and-bass/1/releases?per-page=150&last=30d&type=Release")
 	c.Wait()
-	fmt.Println(filterArtists(ts, as))
+
+	tl := filterArtists(ts, al)
+	return tl, nil
 }
 
 func createTrack(e *colly.HTMLElement) Track {
@@ -77,7 +66,8 @@ func createTrack(e *colly.HTMLElement) Track {
 	a = strings.Join(strings.Fields(a), " ")
 	l := e.ChildText(".buk-horz-release-labels")
 	r := e.ChildText(".buk-horz-release-released")
-	u := e.ChildAttr("a .buk-horz-release-title", "href")
+	u := e.ChildAttr("p.buk-horz-release-title > a", "href")
+	u = "https://www.beatport.com/" + u
 
 	return Track{a, t, l, r, u}
 }
