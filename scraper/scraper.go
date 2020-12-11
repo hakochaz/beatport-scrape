@@ -53,7 +53,7 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		fmt.Println("Visiting", r.URL)
 	})
 
-	c.Visit("https://www.beatport.com/genre/drum-and-bass/1/releases?per-page=150&last=30d&type=Release")
+	c.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?per-page=150&last=30d&type=Release")
 	c.Wait()
 
 	tl := filterArtists(ts, al)

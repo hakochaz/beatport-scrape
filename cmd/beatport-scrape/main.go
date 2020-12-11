@@ -13,13 +13,17 @@ import (
 )
 
 func main() {
+	cwd, _ := os.Getwd()
+	fmt.Print(cwd)
+
 	err := godotenv.Load()
 
 	if err != nil {
+		fmt.Print(err)
 		log.Fatal("Error loading .env file")
 	}
 
-	f, err := os.Open("../../configs/artists.csv")
+	f, err := os.Open(os.Getenv("ArtistDir"))
 
 	if err != nil {
 		fmt.Print(err)
@@ -39,12 +43,12 @@ func main() {
 	for _, a := range al {
 		as = append(as, a[0])
 	}
-	fmt.Println(as)
+
 	g := os.Getenv("Genre")
 	tf := os.Getenv("TimeFrame")
 
 	tl, _ := scraper.GetReleases(as, scraper.Conf{TimeFrame: tf, Genre: g})
 
 	file, _ := json.MarshalIndent(tl, "", " ")
-	_ = ioutil.WriteFile("../../output/tracks.json", file, 0644)
+	_ = ioutil.WriteFile(os.Getenv("OutputDir"), file, 0644)
 }
