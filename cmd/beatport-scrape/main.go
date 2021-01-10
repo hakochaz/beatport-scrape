@@ -13,13 +13,9 @@ import (
 )
 
 func main() {
-	cwd, _ := os.Getwd()
-	fmt.Print(cwd)
-
 	err := godotenv.Load()
 
 	if err != nil {
-		fmt.Print(err)
 		log.Fatal("Error loading .env file")
 	}
 
@@ -35,7 +31,7 @@ func main() {
 	al, err := csv.NewReader(f).ReadAll()
 
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal("Error loading artist file")
 	}
 
 	var as []string

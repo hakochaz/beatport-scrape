@@ -28,7 +28,9 @@ type Conf struct {
 func GetReleases(al []string, co Conf) ([]Track, error) {
 	var ts []Track
 
-	c := colly.NewCollector()
+	c := colly.NewCollector(
+		colly.Async(true),
+	)
 
 	c.OnHTML(".horz-release-meta", func(e *colly.HTMLElement) {
 		ts = append(ts, createTrack(e))
@@ -45,7 +47,7 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		c.OnHTMLDetach(".pagination-bottom-container")
 
 		for i := 2; i <= pn; i++ {
-			c.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=" + co.TimeFrame + "&type=Release")
+			e.Request.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=" + co.TimeFrame + "&type=Release")
 		}
 	})
 
