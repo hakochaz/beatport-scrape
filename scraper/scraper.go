@@ -33,7 +33,15 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	)
 
 	c.OnHTML(".horz-release-meta", func(e *colly.HTMLElement) {
-		ts = append(ts, createTrack(e))
+		a := e.ChildText(".buk-horz-release-artists")
+		as := strings.Split(a, ", ")
+		for _, a := range al {
+			for _, a2 := range as {
+				if a == a2 {
+					ts = append(ts, createTrack(e))
+				}
+			}
+		}
 	})
 
 	c.OnHTML(".pagination-bottom-container", func(e *colly.HTMLElement) {
@@ -58,8 +66,7 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	c.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?per-page=150&last=30d&type=Release")
 	c.Wait()
 
-	tl := filterArtists(ts, al)
-	return tl, nil
+	return ts, nil
 }
 
 func createTrack(e *colly.HTMLElement) Track {
@@ -72,21 +79,4 @@ func createTrack(e *colly.HTMLElement) Track {
 	u = "https://www.beatport.com/" + u
 
 	return Track{a, t, l, r, u}
-}
-
-func filterArtists(tl []Track, al []string) []Track {
-	var ft []Track
-
-	for _, t := range tl {
-		as := strings.Split(t.Artists, ", ")
-		for _, a := range as {
-			for _, a2 := range al {
-				if a == a2 {
-					ft = append(ft, t)
-				}
-			}
-		}
-	}
-
-	return ft
 }
