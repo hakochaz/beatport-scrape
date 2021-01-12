@@ -1,7 +1,7 @@
 package scraper
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -26,6 +26,10 @@ type Conf struct {
 // GetReleases takes in an artists list and returns a list of all tracks
 // by those artists in a defined period of time
 func GetReleases(al []string, co Conf) ([]Track, error) {
+	if len(al) == 0 {
+		return nil, errors.New("artist list is null")
+	}
+
 	var ts []Track
 
 	c := colly.NewCollector(
@@ -35,10 +39,12 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	c.OnHTML(".horz-release-meta", func(e *colly.HTMLElement) {
 		a := e.ChildText(".buk-horz-release-artists")
 		as := strings.Split(a, ", ")
+	Exit:
 		for _, a := range al {
 			for _, a2 := range as {
 				if a == a2 {
 					ts = append(ts, createTrack(e))
+					continue Exit
 				}
 			}
 		}
@@ -59,9 +65,9 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		}
 	})
 
-	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL)
-	})
+	// c.OnRequest(func(r *colly.Request) {
+	// 	fmt.Println("Visiting", r.URL)
+	// })
 
 	c.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?per-page=150&last=30d&type=Release")
 	c.Wait()

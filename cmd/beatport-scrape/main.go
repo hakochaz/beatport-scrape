@@ -43,8 +43,21 @@ func main() {
 	g := os.Getenv("Genre")
 	tf := os.Getenv("TimeFrame")
 
-	tl, _ := scraper.GetReleases(as, scraper.Conf{TimeFrame: tf, Genre: g})
+	tl, err := scraper.GetReleases(as, scraper.Conf{TimeFrame: tf, Genre: g})
 
-	file, _ := json.MarshalIndent(tl, "", " ")
-	_ = ioutil.WriteFile(os.Getenv("OutputDir"), file, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	file, err := json.MarshalIndent(tl, "", " ")
+
+	if err != nil {
+		log.Fatal("Unable to marshall json")
+	}
+
+	err = ioutil.WriteFile(os.Getenv("OutputDir"), file, 0644)
+
+	if err != nil {
+		log.Fatal("Error writing tacks file")
+	}
 }
