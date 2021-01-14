@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -77,18 +78,26 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		colly.Async(true),
 	)
 
+	q := make(chan Track, 5000)
+	var wg sync.WaitGroup
+
 	c.OnHTML(".horz-release-meta", func(e *colly.HTMLElement) {
-		a := e.ChildText(".buk-horz-release-artists")
-		as := strings.Split(a, ", ")
-	Exit:
-		for _, a := range al {
-			for _, a2 := range as {
-				if a == a2 {
-					ts = append(ts, createTrack(e))
-					continue Exit
+		wg.Add(1)
+		go func(e *colly.HTMLElement) {
+			defer wg.Done()
+			a := e.ChildText(".buk-horz-release-artists")
+			as := strings.Split(a, ", ")
+		Exit:
+			for _, a := range al {
+				for _, a2 := range as {
+					if a == a2 {
+						t := createTrack(e)
+						q <- t
+						continue Exit
+					}
 				}
 			}
-		}
+		}(e)
 	})
 
 	c.OnHTML(".pagination-bottom-container", func(e *colly.HTMLElement) {
@@ -108,6 +117,12 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 
 	c.Visit("https://www.beatport.com/genre/" + g + "/1/releases?per-page=150&last=30d&type=Release")
 	c.Wait()
+	wg.Wait()
+	close(q)
+
+	for t := range q {
+		ts = append(ts, t)
+	}
 
 	return ts, nil
 }
