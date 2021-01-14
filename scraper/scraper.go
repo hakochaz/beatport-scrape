@@ -8,6 +8,41 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
+// Holds the values for Beatport genres
+var gm = map[string]string{
+	"AfroHouse":                 "afro-house",
+	"BassHouse":                 "bass-house",
+	"BigRoom":                   "big-room",
+	"Breaks":                    "breaks",
+	"Dance/ElectroPop":          "dance-electro-pop",
+	"DeepHouse":                 "deep-house",
+	"DrumAndBass":               "drum-and-bass",
+	"Dubstep":                   "dubstep",
+	"ElectroHouse":              "electro-house",
+	"Electronica":               "electronica",
+	"Funky/Groove/Jackin'House": "funky-groove-jackin-house",
+	"FutureHouse":               "future-house",
+	"Garage/Bassline/Grime":     "garage-bassline-grime",
+	"HardDance/Hardcore":        "hard-dance-hardcore",
+	"HardTechno":                "hard-techno",
+	"House":                     "house",
+	"IndieDance":                "indie-dance",
+	"LeftfieldBass":             "leftfield-bass",
+	"LeftfieldHouseAndTechno":   "leftfield-house-and-techno",
+	"MelodicHouseAndTechno":     "melodic-house-and-techno",
+	"MinimalDeeptech":           "minimal-deep-tech",
+	"NuDisco/Disco":             "nu-disco-disco",
+	"OrganicHouseDownTempo":     "organic-house-downtempo",
+	"ProgressiveHouse":          "progressive-house",
+	"Psytrance":                 "psy-trance",
+	"Reggae/Dancehall/Dub":      "reggae-dancehall-dub",
+	"TechHouse":                 "tech-house",
+	"Techno(PeakTimeDriving)":   "techno-peak-time-driving",
+	"Techno(RawDeepHypnotic)":   "techno-raw-deep-hypnotic",
+	"Trance":                    "trance",
+	"Trap/HipHop/RAndB":         "trap-hip-hop-r-and-b",
+}
+
 // Track holds the name/artist for the track and the Beatport url for purchasing
 type Track struct {
 	Artists string
@@ -28,6 +63,12 @@ type Conf struct {
 func GetReleases(al []string, co Conf) ([]Track, error) {
 	if len(al) == 0 {
 		return nil, errors.New("artist list is null")
+	}
+
+	g := gm[co.Genre]
+
+	if g == "" {
+		return nil, errors.New("genre not found")
 	}
 
 	var ts []Track
@@ -61,15 +102,11 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		c.OnHTMLDetach(".pagination-bottom-container")
 
 		for i := 2; i <= pn; i++ {
-			e.Request.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=" + co.TimeFrame + "&type=Release")
+			e.Request.Visit("https://www.beatport.com/genre/" + g + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=" + co.TimeFrame + "&type=Release")
 		}
 	})
 
-	// c.OnRequest(func(r *colly.Request) {
-	// 	fmt.Println("Visiting", r.URL)
-	// })
-
-	c.Visit("https://www.beatport.com/genre/" + co.Genre + "/1/releases?per-page=150&last=30d&type=Release")
+	c.Visit("https://www.beatport.com/genre/" + g + "/1/releases?per-page=150&last=30d&type=Release")
 	c.Wait()
 
 	return ts, nil
