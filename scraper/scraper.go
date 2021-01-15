@@ -59,7 +59,7 @@ type Conf struct {
 	Genre     string
 }
 
-// GetReleases takes in an artists list and returns a list of all tracks
+// GetReleases takes in an artists list/config struct and returns a list of all tracks
 // by those artists in a defined period of time
 func GetReleases(al []string, co Conf) ([]Track, error) {
 	if len(al) == 0 {
@@ -68,8 +68,13 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 
 	g := gm[co.Genre]
 
+	// return error if genre not found or timeframe incompatible
 	if g == "" {
 		return nil, errors.New("genre not found")
+	}
+
+	if co.TimeFrame != "30d" && co.TimeFrame != "7d" && co.TimeFrame != "1d" {
+		return nil, errors.New("timeframe not supported")
 	}
 
 	var ts []Track
@@ -81,6 +86,7 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	q := make(chan Track, 5000)
 	var wg sync.WaitGroup
 
+	// concurrenty get all the matched tracks
 	c.OnHTML(".horz-release-meta", func(e *colly.HTMLElement) {
 		wg.Add(1)
 		go func(e *colly.HTMLElement) {
@@ -120,6 +126,7 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	wg.Wait()
 	close(q)
 
+	// append the tacks into the slice
 	for t := range q {
 		ts = append(ts, t)
 	}
