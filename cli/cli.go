@@ -46,6 +46,9 @@ func StartCLI(outputFile, artistsFile string) error {
 	// get artists
 	al, err := csv.NewReader(f).ReadAll()
 
+	fmt.Println(al)
+	fmt.Println(g, tf)
+
 	if err != nil {
 		log.Fatal("Error loading artist file")
 	}
@@ -59,6 +62,8 @@ func StartCLI(outputFile, artistsFile string) error {
 
 	// get releases using the scraper package
 	tl, err := scraper.GetReleases(as, scraper.Conf{TimeFrame: tf, Genre: g})
+
+	fmt.Println(tl)
 
 	if err != nil {
 		log.Fatal(err)
@@ -216,4 +221,9 @@ func setEnvironmentVariable(envKey, envVal string) error {
 	err = godotenv.Write(myEnv, "./.env")
 
 	return err
+}
+
+// PrintHelpMessage prints the help details if the flag is set
+func PrintHelpMessage() {
+	fmt.Println("Help message")
 }
