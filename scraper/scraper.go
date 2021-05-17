@@ -17,7 +17,7 @@ var gm = map[string]string{
 	"Breaks":                    "breaks",
 	"Dance/ElectroPop":          "dance-electro-pop",
 	"DeepHouse":                 "deep-house",
-	"DrumAndBass":               "drum-and-bass",
+	"DrumAndBass":               "drum-bass",
 	"Dubstep":                   "dubstep",
 	"ElectroHouse":              "electro-house",
 	"Electronica":               "electronica",
@@ -91,8 +91,8 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		wg.Add(1)
 		go func(e *colly.HTMLElement) {
 			defer wg.Done()
-			a := e.ChildText(".buk-horz-release-artists")
-			as := strings.Split(a, ", ")
+			as := e.ChildTexts(".buk-horz-release-artists a")
+
 		Exit:
 			for _, a := range al {
 				for _, a2 := range as {
@@ -109,7 +109,6 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	c.OnHTML(".pagination-bottom-container", func(e *colly.HTMLElement) {
 		ct := e.ChildTexts(".pag-number")
 		pn, err := strconv.Atoi(ct[len(ct)-1])
-
 		if err != nil {
 			return
 		}
@@ -117,11 +116,12 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		c.OnHTMLDetach(".pagination-bottom-container")
 
 		for i := 2; i <= pn; i++ {
-			e.Request.Visit("https://www.beatport.com/genre/" + g + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=150&last=" + co.TimeFrame + "&type=Release")
+			// todo: add the numbers relating to genres
+			e.Request.Visit("https://www.beatport.com/genre/" + g + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=100&last=" + co.TimeFrame)
 		}
 	})
 
-	c.Visit("https://www.beatport.com/genre/" + g + "/1/releases?per-page=150&last=30d&type=Release")
+	c.Visit("https://www.beatport.com/genre/" + g + "/1/releases?per-page=100&last=" + co.TimeFrame)
 	c.Wait()
 	wg.Wait()
 	close(q)
@@ -141,7 +141,7 @@ func createTrack(e *colly.HTMLElement) Track {
 	l := e.ChildText(".buk-horz-release-labels")
 	r := e.ChildText(".buk-horz-release-released")
 	u := e.ChildAttr("p.buk-horz-release-title > a", "href")
-	u = "https://www.beatport.com/" + u
+	u = "https://www.beatport.com" + u
 
 	return Track{a, t, l, r, u}
 }
