@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -9,39 +10,38 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// Holds the values for Beatport genres
+// Holds the values for Beatport genres and corresponding ids
 var gm = map[string]string{
-	"AfroHouse":                 "afro-house",
-	"BassHouse":                 "bass-house",
-	"BigRoom":                   "big-room",
-	"Breaks":                    "breaks",
-	"Dance/ElectroPop":          "dance-electro-pop",
-	"DeepHouse":                 "deep-house",
-	"DrumAndBass":               "drum-bass",
-	"Dubstep":                   "dubstep",
-	"ElectroHouse":              "electro-house",
-	"Electronica":               "electronica",
-	"Funky/Groove/Jackin'House": "funky-groove-jackin-house",
-	"FutureHouse":               "future-house",
-	"Garage/Bassline/Grime":     "garage-bassline-grime",
-	"HardDance/Hardcore":        "hard-dance-hardcore",
-	"HardTechno":                "hard-techno",
-	"House":                     "house",
-	"IndieDance":                "indie-dance",
-	"LeftfieldBass":             "leftfield-bass",
-	"LeftfieldHouseAndTechno":   "leftfield-house-and-techno",
-	"MelodicHouseAndTechno":     "melodic-house-and-techno",
-	"MinimalDeeptech":           "minimal-deep-tech",
-	"NuDisco/Disco":             "nu-disco-disco",
-	"OrganicHouseDownTempo":     "organic-house-downtempo",
-	"ProgressiveHouse":          "progressive-house",
-	"Psytrance":                 "psy-trance",
-	"Reggae/Dancehall/Dub":      "reggae-dancehall-dub",
-	"TechHouse":                 "tech-house",
-	"Techno(PeakTimeDriving)":   "techno-peak-time-driving",
-	"Techno(RawDeepHypnotic)":   "techno-raw-deep-hypnotic",
-	"Trance":                    "trance",
-	"Trap/HipHop/RAndB":         "trap-hip-hop-r-and-b",
+	"140-deep-dubstep-grime":    "95",
+	"uk-garage-bassline":        "86",
+	"afro-house":                "89",
+	"bass-house":                "91",
+	"big-room":                  "79",
+	"breaks-breakbeat-uk-bass":  "9",
+	"dance-electro-pop":         "39",
+	"deep-house":                "12",
+	"drum-bass":                 "1",
+	"dubstep":                   "12",
+	"electro-house":             "17",
+	"electronica":               "3",
+	"funky-groove-jackin-house": "81",
+	"future-house":              "65",
+	"garage-bassline-grime":     "",
+	"hard-dance-hardcore":       "8",
+	"hard-techno":               "2",
+	"house":                     "5",
+	"indie-dance":               "37",
+	"melodic-house-and-techno":  "90",
+	"minimal-deep-tech":         "14",
+	"nu-disco-disco":            "50",
+	"organic-house-downtempo":   "93",
+	"progressive-house":         "15",
+	"psy-trance":                "13",
+	"tech-house":                "11",
+	"techno-peak-time-driving":  "6",
+	"techno-raw-deep-hypnotic":  "92",
+	"trance":                    "7",
+	"trap-wave":                 "33",
 }
 
 // Track holds the name/artist for the track and the Beatport url for purchasing
@@ -66,7 +66,8 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		return nil, errors.New("artist list is null")
 	}
 
-	g := gm[co.Genre]
+	g := co.Genre
+	gn := gm[co.Genre]
 
 	// return error if genre not found or timeframe incompatible
 	if g == "" {
@@ -76,6 +77,8 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	if co.TimeFrame != "30d" && co.TimeFrame != "7d" && co.TimeFrame != "1d" {
 		return nil, errors.New("timeframe not supported")
 	}
+
+	fmt.Println("Scraping Beatport....")
 
 	var ts []Track
 
@@ -116,8 +119,7 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		c.OnHTMLDetach(".pagination-bottom-container")
 
 		for i := 2; i <= pn; i++ {
-			// todo: add the numbers relating to genres
-			e.Request.Visit("https://www.beatport.com/genre/" + g + "/1/releases?page=" + strconv.Itoa(i) + "&per-page=100&last=" + co.TimeFrame)
+			e.Request.Visit("https://www.beatport.com/genre/" + g + "/" + gn + "/releases?page=" + strconv.Itoa(i) + "&per-page=100&last=" + co.TimeFrame)
 		}
 	})
 
