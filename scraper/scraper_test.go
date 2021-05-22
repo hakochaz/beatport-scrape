@@ -15,9 +15,9 @@ func TestGetReleases(t *testing.T) {
 		wantErr bool
 		name    string
 	}{
-		{nal, Conf{"30d", "Dubstep"}, true, "empty artists list"},
-		{nnal, Conf{"90d", "Dubstep"}, true, "incompatible time frame"},
-		{nnal, Conf{"30d", "DrumAndBass"}, false, "comopatible paramaters"},
+		{nal, Conf{"30d", "9"}, true, "empty artists list"},
+		{nnal, Conf{"90d", "7"}, true, "incompatible time frame"},
+		{nnal, Conf{"30d", "9"}, false, "comopatible paramaters"},
 	}
 
 	for _, tt := range tests {

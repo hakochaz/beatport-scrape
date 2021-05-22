@@ -10,38 +10,38 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// Holds the values for Beatport genres and corresponding ids
-var gm = map[string]string{
-	"140-deep-dubstep-grime":    "95",
-	"uk-garage-bassline":        "86",
-	"afro-house":                "89",
-	"bass-house":                "91",
-	"big-room":                  "79",
-	"breaks-breakbeat-uk-bass":  "9",
-	"dance-electro-pop":         "39",
-	"deep-house":                "12",
-	"drum-bass":                 "1",
-	"dubstep":                   "12",
-	"electro-house":             "17",
-	"electronica":               "3",
-	"funky-groove-jackin-house": "81",
-	"future-house":              "65",
-	"garage-bassline-grime":     "",
-	"hard-dance-hardcore":       "8",
-	"hard-techno":               "2",
-	"house":                     "5",
-	"indie-dance":               "37",
-	"melodic-house-and-techno":  "90",
-	"minimal-deep-tech":         "14",
-	"nu-disco-disco":            "50",
-	"organic-house-downtempo":   "93",
-	"progressive-house":         "15",
-	"psy-trance":                "13",
-	"tech-house":                "11",
-	"techno-peak-time-driving":  "6",
-	"techno-raw-deep-hypnotic":  "92",
-	"trance":                    "7",
-	"trap-wave":                 "33",
+// Holds the values for Beatport's genres options with corresponding
+// genre with display/url format and identifier
+var GenreOptions = map[string][]string{
+	"1":  {"140-deep-dubstep-grime", "95", "140 / DEEP DUBSTEP / GRIME"},
+	"2":  {"uk-garage-bassline", "86", "UK GARAGE / BASSLINE"},
+	"3":  {"afro-house", "89", "AFRO HOUSE"},
+	"4":  {"bass-house", "91", "BASS HOUSE"},
+	"5":  {"big-room", "79", "BIG ROOM"},
+	"6":  {"breaks-breakbeat-uk-bass", "9", "BREAKS / BREAKBEAT / UK BASS"},
+	"7":  {"dance-electro-pop", "39", "DANCE / ELECTRO POP"},
+	"8":  {"deep-house", "12", "DEEP HOUSE"},
+	"9":  {"drum-bass", "1", "DRUM & BASS"},
+	"10": {"dubstep", "12", "DUBSTEP"},
+	"11": {"electro-house", "17", "ELECTRO HOUSE"},
+	"12": {"electronica", "3", "ELECTRONICA"},
+	"13": {"funky-groove-jackin-house", "81", "FUNKY / GROOVE / JACKIN' HOUSE"},
+	"14": {"future-house", "65", "FUTURE HOUSE"},
+	"15": {"hard-dance-hardcore", "8", "HARD DANCE / HARDCORE"},
+	"16": {"hard-techno", "2", "HARD TECHNO"},
+	"17": {"house", "5", "HOUSE"},
+	"18": {"indie-dance", "37", "INDIE DANCE"},
+	"19": {"melodic-house-and-techno", "90", "MELODIC HOUSE & TECHNO"},
+	"20": {"minimal-deep-tech", "14", "MINIMAL / DEEP TECH"},
+	"21": {"nu-disco-disco", "50", "NU DISCO / DISCO"},
+	"22": {"organic-house-downtempo", "93", "ORGANIC HOUSE / DOWNTEMPO"},
+	"23": {"progressive-house", "15", "PROGRESSIVE HOUSE"},
+	"24": {"psy-trance", "13", "PSY-TRANCE"},
+	"25": {"tech-house", "11", "TECH HOUSE"},
+	"26": {"techno-peak-time-driving", "6", "TECHNO (PEAK TIME / DRIVING)"},
+	"27": {"techno-raw-deep-hypnotic", "92", "TECHNO (RAW / DEEP / HYPNOTIC)"},
+	"28": {"trance", "7", "TRANCE"},
+	"29": {"trap-wave", "33", "TRAP / WAVE"},
 }
 
 // Track holds the name/artist for the track and the Beatport url for purchasing
@@ -66,11 +66,11 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		return nil, errors.New("artist list is null")
 	}
 
-	g := co.Genre
-	gn := gm[co.Genre]
+	g := GenreOptions[co.Genre][0]
+	gn := GenreOptions[co.Genre][1]
 
 	// return error if genre not found or timeframe incompatible
-	if g == "" {
+	if gn == "" {
 		return nil, errors.New("genre not found")
 	}
 
@@ -79,8 +79,6 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 	}
 
 	fmt.Println("Scraping Beatport....")
-
-	var ts []Track
 
 	c := colly.NewCollector(
 		colly.Async(true),
@@ -123,17 +121,19 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		}
 	})
 
-	c.Visit("https://www.beatport.com/genre/" + g + "/1/releases?per-page=100&last=" + co.TimeFrame)
+	c.Visit("https://www.beatport.com/genre/" + g + "/" + gn + "/releases?per-page=100&last=" + co.TimeFrame)
 	c.Wait()
 	wg.Wait()
 	close(q)
 
+	tl := make([]Track, 0)
+
 	// append the tacks into the slice
 	for t := range q {
-		ts = append(ts, t)
+		tl = append(tl, t)
 	}
 
-	return ts, nil
+	return tl, nil
 }
 
 func createTrack(e *colly.HTMLElement) Track {
