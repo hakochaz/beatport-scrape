@@ -78,6 +78,7 @@ func GetReleases(al []string, co Conf) ([]Track, error) {
 		return nil, errors.New("timeframe not supported")
 	}
 
+	fmt.Println()
 	fmt.Println("Scraping Beatport....")
 
 	c := colly.NewCollector(
