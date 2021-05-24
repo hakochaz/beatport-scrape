@@ -12,29 +12,29 @@ import (
 	"strconv"
 
 	"github.com/hakochaz/beatport-scrape/scraper"
-	"github.com/joho/godotenv"
 )
+
+var envFile = os.ExpandEnv("$GOPATH/src/github.com/hakochaz/beatport-scrape/configs/env.json")
 
 // StartScraper gets the default environment variables and
 // scrapes Beatport using these, also prompts the user
 // to set any variables that are currently unset
 func StartScraper(outputFile, artistsFile string, new bool) error {
 	var err error
-	loadEnvVariables()
 
-	g, tf := getEnvironmentVariables()
+	c := getEnvironmentVariables()
 
-	if len(g) == 0 {
+	if len(c.Genre) == 0 {
 		fmt.Println()
-		g, err = SetGenrePrompt()
+		c.Genre, err = SetGenrePrompt()
 		if err != nil {
-			log.Fatal("Error setting genre")
+			log.Fatal("Error setting genre: ", err)
 		}
 	}
 
-	if len(tf) == 0 {
+	if len(c.TimeFrame) == 0 {
 		fmt.Println()
-		tf, err = SetTimeFramePrompt()
+		c.TimeFrame, err = SetTimeFramePrompt()
 		if err != nil {
 			log.Fatal("Error setting timeframe")
 		}
@@ -91,12 +91,13 @@ func StartScraper(outputFile, artistsFile string, new bool) error {
 	}
 
 	// get releases using the scraper package
-	tl, err := scraper.GetReleases(as, scraper.Conf{TimeFrame: tf, Genre: g})
+	tl, err := scraper.GetReleases(as, c)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Println()
 	fmt.Println("Latest Releases: ")
 	if len(tl) == 0 {
 		fmt.Println("No new releases found.")
@@ -130,17 +131,6 @@ func StartScraper(outputFile, artistsFile string, new bool) error {
 	}
 
 	return nil
-}
-
-// loadEnvVariables loads the local varibales from .env
-func loadEnvVariables() {
-	// load the environment variables
-	err := godotenv.Load()
-
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("Error loading .env file")
-	}
 }
 
 // SetGenrePrompt allows the user to select a default genre for the CLI
@@ -229,27 +219,50 @@ func SetTimeFramePrompt() (string, error) {
 	}
 }
 
-// getEnvironmentVariables return the Genre/Timeframe variables
-func getEnvironmentVariables() (string, string) {
-	g := os.Getenv("Genre")
-	tf := os.Getenv("TimeFrame")
-	return g, tf
+// getEnvironmentVariables returns the Conf type containing
+// the environment variables
+func getEnvironmentVariables() scraper.Conf {
+	f, err := ioutil.ReadFile(envFile)
+
+	if err != nil {
+		log.Fatal("Error reading file: ", err)
+	}
+
+	c := scraper.Conf{}
+
+	_ = json.Unmarshal([]byte(f), &c)
+
+	return c
 }
 
 // setEmvironmentVariables sets an environment variable
 func setEnvironmentVariable(envKey, envVal string) (string, error) {
-	var myEnv map[string]string
-	myEnv, err := godotenv.Read()
+	c := scraper.Conf{}
 
-	if err != nil {
-		return "", err
+	err := readJSONFileIntoConf(envFile, &c)
+
+	if envKey == "TimeFrame" {
+		c.TimeFrame = envVal
+	} else if envKey == "Genre" {
+		c.Genre = envVal
 	}
 
-	myEnv[envKey] = envVal
+	f, _ := json.MarshalIndent(c, "", " ")
 
-	err = godotenv.Write(myEnv, "./.env")
+	_ = ioutil.WriteFile(envFile, f, 0644)
 
 	return envVal, err
+}
+
+// readJSONFileIntoStruct reads a json file into a Conf type
+func readJSONFileIntoConf(fn string, c *scraper.Conf) error {
+	f, err := ioutil.ReadFile(fn)
+
+	if err != nil {
+		log.Fatal("Error reading file: ", err)
+	}
+
+	return json.Unmarshal([]byte(f), &c)
 }
 
 // PrintHelpMessage prints the help details if the flag is set
