@@ -1,46 +1,29 @@
 # Beatport Scrape
 Tool for DJs to get new releases from their favourite artists. 
 
-Scrapes Beatport releases from a list of artists and outputs track data - including the Beatport URL.
+Scrapes Beatport new releases from a list of artists and outputs track data in JSON format - including the Beatport URL.
 
-Scraper configured via genre and timeframe.
+Scraper configured via genre, timeframe and list of artists.
 
 Uses Colly for the web scraping framework.
 
 https://github.com/gocolly/colly
 
-# Configuration 
-Start by adding your favourite artists to the artists csv file located in the configs folder.
+# Installation 
+Install the program via the following command.
 
-Edit the .Env file in the root directory.
+```go get github.com/hakochaz/beatport-scrape```
 
-1. Timeframe
+# Configuration
+Running the application for the first time will prompt the user to set both the default Genre and Timeframe.
 
-Choose any of the following timeframes: 
-1d, 7d or 30d.
+If the user has not added any artists to the artists file, the program will also prompt the user to list their favourite artists - and will then be appended to the configuration file.
 
-Default: 30d
+# Commands 
+The following commands allow the user to individually set the configuration varibles without scraping.
 
-2. Genre
+SetGenre     -     running this command will bring up the prompt which allows the user to pick from the Beatport defined lsit of genres.
 
-Supports all availble Beatport genres, choose from the following:
+SetTimeframe -     running this command will bring up a prompt to choose a default timeframe between 1, 7 and 30 days.
 
-AfroHouse, BassHouse, BigRoom, Breaks, Dance/ElectroPop, DeepHouse, DrumAndBass, Dubstep, ElectroHouse,
-Electronica, Funky/Groove/Jackin'House, FutureHouse Garage/Bassline/Grime, HardDance/Hardcore, HardTechno,
-House, IndieDance, LeftfieldBass, LeftfieldHouseAndTechno, MelodicHouseAndTechno, MinimalDeeptech,
-NuDisco/Disco, OrganicHouseDownTempo, ProgressiveHouse, Psytrance, Reggae/Dancehall/Dub, TechHouse,
-Techno(PeakTimeDriving), Techno(RawDeepHypnotic), Trance, Trap/HipHop/RAndB.
-
-Default: DrumAndBass
-
-3. ArtistDir
-
-The directory which holds the artists csv file.
-
-Default: configs/artists.csv
-
-4. OutputDir
-
-The directory to output any matching tracks in JSON format.
-
-Default: output/tracks.json
+AddArtists   -     running this command will bring up a prompt where the user can manually list any artists to add to the artists config file.
