@@ -14,7 +14,7 @@ import (
 	"github.com/hakochaz/beatport-scrape/scraper"
 )
 
-var envFile = os.ExpandEnv("$GOPATH/pkg/github.com/hakochaz/beatport-scrape@v1.0.0/configs/env.json")
+var envFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.0/configs/env.json")
 
 // StartScraper gets the default environment variables and
 // scrapes Beatport using these, also prompts the user
