@@ -9,10 +9,13 @@ import (
 	"github.com/hakochaz/beatport-scrape/cli"
 )
 
-var ArtistsFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.2/configs/artists.csv")
-var OutputFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.2/output/tracks.json")
+var ArtistsFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.3/configs/artists.csv")
+var OutputFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.3/output/tracks.json")
 
 func main() {
+	// check config files permissions to make sure we can write
+	cli.CheckFilePermissions(ArtistsFile, OutputFile)
+
 	// print welcome and help flag details
 	fmt.Println("Welcome to Beatport Scraper")
 	fmt.Println("Use the --help flag for more details")

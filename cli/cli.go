@@ -14,7 +14,7 @@ import (
 	"github.com/hakochaz/beatport-scrape/scraper"
 )
 
-var envFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.2/configs/env.json")
+var envFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.3/configs/env.json")
 
 // StartScraper gets the default environment variables and
 // scrapes Beatport using these, also prompts the user
@@ -44,7 +44,7 @@ func StartScraper(outputFile, artistsFile string, new bool) error {
 	f, err := os.Open(artistsFile)
 
 	if err != nil {
-		log.Fatal("Error loading artist file")
+		log.Fatal("Error loading artist file: ", err)
 	}
 
 	defer f.Close()
@@ -53,14 +53,14 @@ func StartScraper(outputFile, artistsFile string, new bool) error {
 	al, err := csv.NewReader(f).ReadAll()
 
 	if err != nil {
-		log.Fatal("Error loading artist file")
+		log.Fatal("Error loading artist file: ", err)
 	}
 
 	if len(al) == 0 {
 		f, err := os.OpenFile(artistsFile, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 
 		if err != nil {
-			log.Fatal("Error loading artist file")
+			log.Fatal("Error loading artist file: ", err)
 		}
 
 		AddArtistsPrompt(f)
@@ -241,6 +241,10 @@ func setEnvironmentVariable(envKey, envVal string) (string, error) {
 
 	err := readJSONFileIntoConf(envFile, &c)
 
+	if err != nil {
+		return "", err
+	}
+
 	if envKey == "TimeFrame" {
 		c.TimeFrame = envVal
 	} else if envKey == "Genre" {
@@ -249,7 +253,7 @@ func setEnvironmentVariable(envKey, envVal string) (string, error) {
 
 	f, _ := json.MarshalIndent(c, "", " ")
 
-	_ = ioutil.WriteFile(envFile, f, 0644)
+	err = ioutil.WriteFile(envFile, f, 0644)
 
 	return envVal, err
 }
@@ -364,4 +368,57 @@ func printTracks(t1 []scraper.Track) {
 		fmt.Println(string(tj))
 	}
 	fmt.Println()
+}
+
+// CheckPermissions makes sure that the required config files are writable
+func CheckFilePermissions(artistsFile, outputFile string) error {
+	info, err := os.Stat(artistsFile)
+
+	if err != nil {
+		return err
+	}
+
+	m := info.Mode()
+
+	if m != 0777 {
+		err = os.Chmod(artistsFile, 0777)
+
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	info, err = os.Stat(outputFile)
+
+	if err != nil {
+		return err
+	}
+
+	m = info.Mode()
+
+	if m != 0777 {
+		err = os.Chmod(outputFile, 0777)
+
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	info, err = os.Stat(envFile)
+
+	if err != nil {
+		return err
+	}
+
+	m = info.Mode()
+
+	if m != 0777 {
+		err = os.Chmod(envFile, 0777)
+
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	return err
 }
