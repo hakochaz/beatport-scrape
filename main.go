@@ -9,8 +9,8 @@ import (
 	"github.com/hakochaz/beatport-scrape/cli"
 )
 
-var ArtistsFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.0/configs/artists.csv")
-var OutputFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.0/output/tracks.json")
+var ArtistsFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.2/configs/artists.csv")
+var OutputFile = os.ExpandEnv("$GOPATH/pkg/mod/github.com/hakochaz/beatport-scrape@v1.0.2/output/tracks.json")
 
 func main() {
 	// print welcome and help flag details
