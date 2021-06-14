@@ -11,8 +11,9 @@ https://github.com/gocolly/colly
 
 # Installation 
 Install the program via the following command.
-
-```go get github.com/hakochaz/beatport-scrape```
+```
+go get github.com/hakochaz/beatport-scrape
+```
 
 # Configuration
 Running the application for the first time will prompt the user to set both the default Genre and Timeframe.
